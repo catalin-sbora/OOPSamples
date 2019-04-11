@@ -89,6 +89,18 @@ namespace Lesson1
             Amount -= currentEntry.PricePerUnit * currentEntry.Qty;
             currentEntry.Qty = newQty;
             Amount += currentEntry.Qty * currentEntry.PricePerUnit;
+
+            if (newQty == 0)
+            {
+                orderEntries.Remove(currentEntry);            
+            }
+        }
+
+        public void RemoveEntryWithIndex(int index)
+        {
+            var entry = orderEntries.ElementAt(index);
+            Amount -= entry.TotalPrice;
+            orderEntries.Remove(entry);
         }
 
         public IEnumerable<OrderEntry> OrderEntries
