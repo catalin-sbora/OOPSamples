@@ -61,7 +61,10 @@ namespace Lesson1
 
         public void AddItem(Product p, ulong qty)
         {            
-            
+            if (p == null)
+            {
+                throw new ArgumentException("Product is not valid.");
+            }
             var currentEntry = orderEntries.Where(entry => entry.ProductId == p.Id)
                             .SingleOrDefault();
 

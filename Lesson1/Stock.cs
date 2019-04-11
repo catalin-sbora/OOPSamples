@@ -58,6 +58,14 @@ namespace Lesson1
 
             return false;
         }
+
+        public IEnumerable<StockEntry> StockEntries
+        {
+            get
+            {
+                return stockEntries.AsEnumerable();
+            }
+        }
         
     }
 }
