@@ -15,5 +15,8 @@
     <Content Include="DataRepository.cs" />
     <Content Include="Seller.cs" />
     <Content Include="ConsoleMenuController.cs" />
+    <Content Include="OrderSummary.cs" />
+    <Content Include="Menu.cs" />
+    <Content Include="MenuItem.cs" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Lesson1
@@ -63,12 +64,27 @@ namespace Lesson1
             VerifyCurrentOrderExists();
             var currentEntry = currentOrder.OrderEntries.Where(entry => entry.ProductId == productId)
                                                         .SingleOrDefault();
+            if (currentEntry == null)
+            {
+                throw new ArgumentException("The given product is not in the order");   
+            }
+
             if (qtyToRemove > currentEntry.Qty)
             {
                 throw new ArgumentException("Too many products to remove.", "qtyToRemove");
             }
 
             currentOrder.UpdateProductQty(productId, currentEntry.Qty - qtyToRemove);
+        }
+
+        public IEnumerable<OrderEntry> ListOrderEntries()
+        {
+          return  currentOrder.OrderEntries;            
+        }
+
+        public OrderSummary GetOrderSummary()
+        {
+            return new OrderSummary{Price = currentOrder.Amount, VAT = currentOrder.VAT, TotalValue = currentOrder.TotalValue };
         }
 
         public void FinalizeOrder()

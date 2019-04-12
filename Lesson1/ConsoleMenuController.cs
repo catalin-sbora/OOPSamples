@@ -6,88 +6,12 @@ namespace Lesson1.UI
     public class ConsoleMenuController
     {
 
+        Menu mainMenu = new Menu();
         private Seller seller;
-        private string currentError = "";
+        
         private readonly DataRepository repository;
 
-        private void RenderError()
-        {
-            if (!string.IsNullOrEmpty(currentError))
-            {
-                Console.WriteLine($"\n\nError: {currentError}\n\n");
-            }
-        }
-        private void RenderMainMenu()
-        {
-            Console.Clear();
-
-            Console.WriteLine("**Seller APP**\n\n");
-            Console.WriteLine("1. New Order");
-            Console.WriteLine("2. View All Products");
-            Console.WriteLine("3. View Existing Stock");
-            Console.WriteLine("0. Exit");
-            RenderError();
-        }
-
-        private void RenderNewOrderMenu()
-        {
-            Console.Clear();
-            Console.WriteLine("**Seller APP**\n\n");
-            Console.WriteLine("1. Add New Product");
-            Console.WriteLine("2. Remove Product");
-            Console.WriteLine("3. Finalize");
-            Console.WriteLine("0. Cancel");
-            RenderError();
-        }
-
-        private byte ReadMainMenu()
-        {
-            byte option = 0;
-            do
-            {
-                RenderMainMenu();
-                Console.Write("Your Option: ");
-                
-                var keyInfo = Console.ReadKey();            
-                option = (byte)(keyInfo.KeyChar - '0');
-                if (option > 3)
-                {
-                    currentError = "Invalid option. Please choose somehting from the list.";
-                }
-                else
-                {
-                    currentError = "";
-                }
-
-            }while(option > 3);
-
-            return option;
-        }
-
-        private byte ReadNewOrderMenu()
-        {
-            byte option = 0;
-            do
-            {
-                RenderNewOrderMenu();
-                Console.Write("Your Option: ");
-                
-                var keyInfo = Console.ReadKey();            
-                option = (byte)(keyInfo.KeyChar - '0');
-                if (option > 3)
-                {
-                    currentError = "Invalid option. Please choose somehting from the list.";
-                }
-                else
-                {
-                    currentError = "";
-                }
-
-            }while(option > 3);
-
-            return option;
-        }
-
+        
         private void ListProductsInStock()
         {
             Console.WriteLine("PRODUCTS ");
@@ -99,8 +23,41 @@ namespace Lesson1.UI
             }
         }
 
-        public Product GetProductToAdd()
-        {            
+        private void ListProductsInOrder()
+        {
+            var orderEntries = seller.ListOrderEntries();
+            if (orderEntries.Count() == 0)
+            {
+                Console.WriteLine("Empty order !!!");
+            }
+            else
+            {
+                Console.WriteLine("Order entries ");
+                Console.WriteLine("{0,4}|{1,4}|{2,40}|{3,10}|{4,10}|{5, 10}", "#" ,"Id", "Name", "Qty", "P.P.U", "Total");
+                int idx = 0;
+                foreach(var orderEntry in orderEntries)
+                {
+                    Console.WriteLine("{0,4}|{1,4}|{2,40}|{3,10}|{4,10}|{5, 10}", 
+                                        idx+1,
+                                        orderEntry.ProductId, 
+                                        orderEntry.ProductName, 
+                                        orderEntry.Qty, 
+                                        orderEntry.PricePerUnit, 
+                                        orderEntry.TotalPrice);
+                    idx++;
+                }
+            }
+            var orderSummary = seller.GetOrderSummary();    
+            Console.WriteLine("\n\nTOTALS\n--------------------------------------------------------------------------------------------");
+            Console.WriteLine("{0, 72} {1, 10}","Total without VAT:", orderSummary.Price);
+            Console.WriteLine("{0, 72} {1, 10}","VAT:", orderSummary.VAT);
+            Console.WriteLine("{0, 72} {1, 10}","Total with VAT:", orderSummary.TotalValue);
+
+        }
+
+
+        private int ReadProductId()
+        {
             int productId = 0;
             var readId = "";
             do 
@@ -109,7 +66,14 @@ namespace Lesson1.UI
                 readId = Console.ReadLine();     
 
             } while (!Int32.TryParse(readId, out productId));   
-            
+
+            return productId;
+        }
+
+        private Product GetProductToAdd()
+        {            
+            int productId = 0;
+            productId = ReadProductId();
             var currentStock = repository.ProductsStock;
             var stockEntry = currentStock.StockEntries.Where(entry => entry.Product.Id == productId)
                                      .SingleOrDefault();
@@ -122,16 +86,16 @@ namespace Lesson1.UI
             return retVal;
         }
 
-        public int GetQtyToAdd()
+        private ulong ReadQty()
         {
             var readString = "";
-            int qty = 0;
+            ulong qty = 0;
             do 
             {
                 Console.Write("Qty (valid number): ");
                 readString = Console.ReadLine();     
 
-            } while (!Int32.TryParse(readString, out qty));
+            } while (!ulong.TryParse(readString, out qty));
 
             return qty;
         }
@@ -143,7 +107,25 @@ namespace Lesson1.UI
 
         private void HandleRemoveProduct()
         {
-            
+            Console.Clear();
+            ListProductsInOrder();
+            int productId = ReadProductId();
+            ulong qty = (ulong)ReadQty();
+            try
+            {
+                seller.RemoveItemFromOrder(productId, qty);
+                Console.WriteLine($"Successfully removed {qty} units of product {productId} from order");
+            }
+            catch(ArgumentException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            catch(Exception)
+            {
+                Console.WriteLine("Unexpected error occured while trying to remove the product from the order.");
+            }
+
+            Console.ReadLine();
         }
 
         private void HandleAddNewProduct()
@@ -152,7 +134,7 @@ namespace Lesson1.UI
             Console.Clear();
             ListProductsInStock();
             var productToAdd = GetProductToAdd();
-            var qty = GetQtyToAdd();
+            var qty = ReadQty();
             try
             {    
                 seller.AddItemToOrder(productToAdd, (ulong)qty);            
@@ -164,38 +146,7 @@ namespace Lesson1.UI
             }
             
             Console.ReadLine();
-        }
-
-        private void HandleNewOrder()
-        {
-            bool stayInMenu = true;
-            byte option = 0;
-
-            seller.StartNewOrder();
-            while(stayInMenu)
-            {
-                option = ReadNewOrderMenu();
-                switch(option)
-                {
-                    case 0:
-                        stayInMenu = false;
-                    break;
-                    case 1:
-                        HandleAddNewProduct();
-                    break;
-                    
-                    case 2:
-                        HandleRemoveProduct();    
-                    break;
-
-                    case 3:
-                        HandleFinalizeOrder();
-                    break;
-                }
-            }
-
-        }
-
+        } 
         
 
         private void HandleViewAllProducts()
@@ -215,31 +166,20 @@ namespace Lesson1.UI
             seller = new Seller(this.repository.ProductsStock);
         }
 
+        public void Initialize()
+        {
+            Menu newOrderMenu = new Menu();
+            newOrderMenu.SetMenuItem(1, "Add product", () => HandleAddNewProduct());
+            newOrderMenu.SetMenuItem(2, "Remove product from order", () => HandleRemoveProduct());
+            newOrderMenu.SetMenuItem(3, "Finalize Order", () => HandleFinalizeOrder()); 
+            newOrderMenu.OnPreRender = new Action( ()=> ListProductsInOrder());
+            mainMenu.SetMenuItem(1, "New Order", newOrderMenu, () => seller.StartNewOrder());            
+            mainMenu.SetMenuItem(2, "View All Products", ()=>HandleViewAllProducts());
+            mainMenu.SetMenuItem(3, "View Products in stock", ()=>HandleViewStock());
+        }
         public void EnterMainMenu()
         {
-            bool continueApplication = true;
-            byte option = 0;
-            while(continueApplication)
-            {
-                option = ReadMainMenu();
-                switch(option)
-                {
-                    case 0:
-                        continueApplication = false;
-                    break;
-                    case 1:
-                        HandleNewOrder();
-                    break;
-                    
-                    case 2:
-                        HandleViewAllProducts();
-                    break;
-
-                    case 3:
-                        HandleViewStock();
-                    break;
-                }
-            }
+            mainMenu.EnterMenu();            
         } 
         
 

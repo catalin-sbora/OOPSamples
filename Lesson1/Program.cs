@@ -11,6 +11,7 @@ namespace Lesson1.UI
             repository.Initialize();
 
             ConsoleMenuController menuController = new ConsoleMenuController(repository);
+            menuController.Initialize();
             menuController.EnterMainMenu();
             
         }
