@@ -2,7 +2,7 @@ using System;
 using Lesson2.Abstractions;
 using Lesson2;
 
-namespace Lesson2.Implementations
+namespace Lesson2.Implementations.CirclePlugin
 {
     public class Circle : IDrawableShape, IReadableShape
     {
