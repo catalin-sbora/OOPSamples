@@ -1,13 +1,14 @@
 using System;
-
+using System.Collections.Generic;
+using Store.Domain;
 namespace DataAccess.Abstractions
 {
     public interface IProductsRepository
     {
-        object GetById(int id);
-        IEnumerable<object> GetByPartialName(string name);
-        IEnumerable<object> GetAll();
-        void Add(object itemToAdd);
-        void Update(object itemToUpdate);
+        Product GetById(int id);
+        IEnumerable<Product> GetByPartialName(string name);
+        IEnumerable<Product> GetAll();
+        void Add(Product itemToAdd);
+        void Update(Product itemToUpdate);
     } 
 }

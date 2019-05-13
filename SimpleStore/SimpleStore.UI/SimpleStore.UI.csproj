@@ -13,4 +13,7 @@
     <Content Include="Controllers\AboutController.cs" />
     <Content Include="Startup.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StoreLogic\Services.Abstractions\Services.Abstractions.csproj" />
+  </ItemGroup>
 </Project>
